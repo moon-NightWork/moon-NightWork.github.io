@@ -1,4 +1,4 @@
-import{a5 as Xr,a6 as fe,a4 as Jr,i as Ie}from"./index-CooFRSVd.js";function ue(I){throw new Error('Could not dynamically require "'+I+'". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.')}var Xe={exports:{}};/*!
+import{a5 as Xr,a6 as fe,a4 as Jr,i as Ie}from"./index-C3VVKGRu.js";function ue(I){throw new Error('Could not dynamically require "'+I+'". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.')}var Xe={exports:{}};/*!
     localForage -- Offline Storage, Improved
     Version 1.10.0
     https://localforage.github.io/localForage
