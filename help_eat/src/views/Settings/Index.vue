@@ -185,7 +185,6 @@ async function handleImport(event: Event) {
 
     ElMessage.success('数据导入成功，请刷新页面')
   } catch (e: any) {
-    console.error(e)
     ElMessage.error('数据导入失败：' + e.message)
   } finally {
     target.value = ''

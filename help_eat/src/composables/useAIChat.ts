@@ -298,13 +298,6 @@ export function useAIChat() {
 
     const { apiKey, baseUrl, model, temperature } = aiStore.settings
 
-    console.log('[streamCallAI] 开始流式请求:', {
-      baseUrl,
-      model,
-      temperature,
-      stream: true
-    })
-
     const messages = [
       { role: 'system', content: '你是一位专业的饮食健康助手。' },
       { role: 'user', content: prompt }
@@ -324,14 +317,10 @@ export function useAIChat() {
       })
     })
 
-    console.log('[streamCallAI] 响应状态:', response.status)
-    console.log('[streamCallAI] Content-Type:', response.headers.get('content-type'))
-
     if (!response.ok) {
       let errorMsg = `请求失败: ${response.status}`
       try {
         const errorData = await response.json()
-        console.log('[streamCallAI] 错误响应:', errorData)
         errorMsg += ` - ${errorData.error?.message || JSON.stringify(errorData)}`
       } catch {
         errorMsg += ` - ${response.statusText}`
@@ -350,11 +339,6 @@ export function useAIChat() {
       const { done, value } = await reader.read()
       
       if (done) {
-        console.log('[streamCallAI] 流式响应完成，共处理', chunkCount, '个数据块')
-        // 处理最后的buffer
-        if (buffer.trim()) {
-          console.log('[streamCallAI] 处理剩余buffer:', buffer)
-        }
         break
       }
 
@@ -371,7 +355,6 @@ export function useAIChat() {
         
         const dataStr = line.slice(6).trim()
         if (dataStr === '[DONE]') {
-          console.log('[streamCallAI] 收到[DONE]标记')
           continue
         }
 
@@ -380,13 +363,9 @@ export function useAIChat() {
           const delta = data.choices?.[0]?.delta?.content
           if (delta) {
             chunkCount++
-            if (chunkCount <= 5) {
-              console.log('[streamCallAI] 收到数据块', chunkCount, ':', JSON.stringify(delta))
-            }
             await onChunk(delta) // 等待async回调
           }
-        } catch (err) {
-          console.log('[streamCallAI] 解析数据失败:', err, 'dataStr:', dataStr)
+        } catch {
           // 忽略解析错误
         }
       }
@@ -529,8 +508,7 @@ export function useAIChat() {
 
       await aiStore.finishStreamingMessage(messageId)
       onStreamComplete?.()
-    } catch (err) {
-      console.error('[streamChat] 流式请求失败，回退到非流式:', err)
+    } catch {
       await normalChat(userContent, messageId)
       onStreamComplete?.()
     }

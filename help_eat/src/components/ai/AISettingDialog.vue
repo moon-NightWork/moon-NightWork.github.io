@@ -207,11 +207,6 @@ async function handleTestConnection() {
   })
 
   try {
-    console.log('测试连接配置:', {
-      baseUrl: form.value.baseUrl,
-      model: form.value.model
-    })
-
     const response = await fetch(`${form.value.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -226,26 +221,20 @@ async function handleTestConnection() {
       })
     })
 
-    console.log('响应状态:', response.status)
-
     if (!response.ok) {
       let errorText = ''
       try {
         const errorData = await response.json()
-        console.log('错误响应:', errorData)
         errorText = JSON.stringify(errorData)
-      } catch (e) {
+      } catch {
         errorText = await response.text()
-        console.log('错误文本:', errorText)
       }
       throw new Error(`状态码 ${response.status}: ${errorText}`)
     }
 
-    const data = await response.json()
-    console.log('成功响应:', data)
+    await response.json()
     ElMessage.success('连接成功！配置正确')
   } catch (err) {
-    console.error('连接测试失败:', err)
     ElMessage.error(`连接失败: ${err instanceof Error ? err.message : String(err)}`)
   } finally {
     loading.close()

@@ -130,12 +130,9 @@ async function fetchInfo() {
   error.value = null
   hasReceivedContent.value = false
 
-  console.log('[AIInfoDialog] 开始查询')
-
   try {
     if (props.type === 'member' && props.member) {
       await streamQueryMemberInfo(props.member, async (chunk) => {
-        console.log('[AIInfoDialog] 收到chunk:', chunk)
         if (!hasReceivedContent.value && chunk.trim()) {
           hasReceivedContent.value = true
         }
@@ -145,7 +142,6 @@ async function fetchInfo() {
       })
     } else if (props.name) {
       await streamQueryInfo(props.name, props.type as 'ingredient' | 'recipe', async (chunk) => {
-        console.log('[AIInfoDialog] 收到chunk:', chunk)
         if (!hasReceivedContent.value && chunk.trim()) {
           hasReceivedContent.value = true
         }
@@ -154,9 +150,7 @@ async function fetchInfo() {
         scrollToBottom()
       })
     }
-    console.log('[AIInfoDialog] 查询完成，最终内容长度:', content.value.length)
   } catch (err) {
-    console.error('[AIInfoDialog] 查询失败:', err)
     error.value = err instanceof Error ? err.message : '查询失败'
   }
 }

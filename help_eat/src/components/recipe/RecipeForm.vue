@@ -284,12 +284,7 @@ const matchedIngredients = computed(() => {
 const ingredientsForSubmit = computed(() => [...selectedIngredients.value])
 
 watch(() => props.editData, (data, oldValue) => {
-  console.log('👀 [DEBUG] watch editData 触发！')
-  console.log('  旧值:', oldValue)
-  console.log('  新值:', data)
-  
   if (data) {
-    console.log('  ✅ 编辑模式，准备填充数据')
     isEdit.value = true
     Object.assign(formData, {
       name: data.name,
@@ -301,11 +296,8 @@ watch(() => props.editData, (data, oldValue) => {
       servings: data.servings,
       difficulty: data.difficulty
     })
-    console.log('  ⚠️ 准备设置 selectedIngredients:', data.ingredients)
     selectedIngredients.value = [...data.ingredients]
-    console.log('  ✅ 设置完成，当前 selectedIngredients:', selectedIngredients.value)
   } else {
-    console.log('  ❌ 新增模式，重置表单')
     isEdit.value = false
     selectedIngredients.value = []
     resetForm()
@@ -328,7 +320,6 @@ function resetForm() {
 
 function handleAddIngredientInput() {
   const name = ingredientInput.value.trim()
-  console.log('🍅 [DEBUG] handleAddIngredientInput 被调用！当前输入:', name)
   
   if (!name) {
     ElMessage.warning('请输入食材名称')
@@ -336,45 +327,34 @@ function handleAddIngredientInput() {
   }
   
   const existingIng = ingredientStore.ingredients.find(ing => ing.name === name)
-  console.log('🍅 [DEBUG] ingredientStore.ingredients 内容:', ingredientStore.ingredients)
   
   if (existingIng) {
-    console.log('🍅 [DEBUG] 找到匹配食材:', existingIng)
     handleAddMatchedIngredient(existingIng)
   } else {
-    console.log('🍅 [DEBUG] 未找到匹配，添加临时食材')
     handleAddNewIngredient(name)
   }
   ingredientInput.value = ''
 }
 
 function handleAddMatchedIngredient(ing: Ingredient) {
-  console.log('🍏 [DEBUG] handleAddMatchedIngredient 被调用！添加食材:', ing)
-  
   if (selectedIngredients.value.some(i => i.id === ing.id)) {
     ElMessage.warning('该食材已添加')
     return
   }
   selectedIngredients.value.push({ id: ing.id, name: ing.name })
-  console.log('🍏 [DEBUG] 添加成功，当前 selectedIngredients:', selectedIngredients.value)
   ingredientInput.value = ''
 }
 
 function handleAddNewIngredient(name: string) {
-  console.log('🆕 [DEBUG] handleAddNewIngredient 被调用！名称:', name)
-  
   if (selectedIngredients.value.some(i => i.name === name)) {
     ElMessage.warning('该食材已添加')
     return
   }
   selectedIngredients.value.push({ id: `temp_${Date.now()}_${name}`, name })
-  console.log('🆕 [DEBUG] 添加成功，当前 selectedIngredients:', selectedIngredients.value)
 }
 
 function handleRemoveIngredient(id: string) {
-  console.log('❌ [DEBUG] handleRemoveIngredient 被调用！id:', id)
   selectedIngredients.value = selectedIngredients.value.filter(i => i.id !== id)
-  console.log('❌ [DEBUG] 移除成功，当前 selectedIngredients:', selectedIngredients.value)
 }
 
 function handleImageClick() {
@@ -436,17 +416,11 @@ async function handleContinueWithoutAdding() {
 
 function doSubmit() {
   submitting.value = true
-  console.log('📤 [Form 准备 emit submit 数据')
-  console.log('  formData 内容:', { ...formData })
-  console.log('  selectedIngredients:', selectedIngredients.value)
-  console.log('  ingredientsForSubmit:', ingredientsForSubmit.value)
   
   const submitData = {
     ...formData,
     ingredients: ingredientsForSubmit.value
   }
-  
-  console.log('  最终 submitData:', submitData)
   
   // 双重保险：把 Vue Proxy 转换为普通对象
   const plainSubmitData = JSON.parse(JSON.stringify(submitData))

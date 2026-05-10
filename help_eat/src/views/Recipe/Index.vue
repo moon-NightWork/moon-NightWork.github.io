@@ -204,9 +204,6 @@ async function handleDeleteRecipe() {
 }
 
 async function handleFormSubmit(data: Omit<Recipe, 'id' | 'createdAt' | 'updatedAt'>) {
-  console.log('🔵 [DEBUG] 收到提交数据:', data)
-  console.log('🔵 [DEBUG] 当前 selectedIngredients 在 Form 中:', data.ingredients)
-  
   // 如果 editRecipe 的 id 是空字符串，说明是新增模式
   const isEditMode = editRecipe.value && editRecipe.value.id !== ''
   const excludeId = isEditMode ? editRecipe.value?.id : undefined
@@ -217,21 +214,12 @@ async function handleFormSubmit(data: Omit<Recipe, 'id' | 'createdAt' | 'updated
   }
   
   if (isEditMode) {
-    console.log('🟡 [DEBUG] 准备更新菜谱 ID:', editRecipe.value.id)
     await recipeStore.updateRecipe(editRecipe.value.id, data)
     ElMessage.success('更新成功')
   } else {
-    console.log('🟢 [DEBUG] 准备添加新菜谱')
     await recipeStore.addRecipe(data)
     ElMessage.success('添加成功')
   }
-  
-  // 调试：直接从 API 读取一下看看数据有没有保存成功！
-  console.log('📝 [DEBUG] 保存后 recipeStore.recipes 内容:', recipeStore.recipes)
-  
-  // 调试：直接从 IndexedDB 读取验证
-  const allRecipesFromDB = await recipeApi.getAllRecipes()
-  console.log('💾 [DEBUG] IndexedDB 中的菜谱:', allRecipesFromDB)
   
   // 清空 editRecipe 并关闭表单
   editRecipe.value = null

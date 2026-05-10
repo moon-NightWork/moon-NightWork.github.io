@@ -181,7 +181,6 @@ async function handleSendMessage(content: string) {
   }
 
   try {
-    console.log('正在发送请求...', { baseUrl: aiStore.settings.baseUrl, model: aiStore.settings.model })
     // 先添加用户消息，立即滚动到底部
     await aiStore.addMessage(content, 'user')
     scrollToBottom()
