@@ -140,13 +140,65 @@ export function useAIChat() {
       const prompt = generateIngredientFormPrompt(ingredientName)
       const response = await callAI(prompt)
       
-      // 解析JSON响应
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
+      console.log('AI原始响应:', response) // 添加调试日志
+      
+      // 解析JSON响应 - 增强容错性
+      let jsonStr = response.trim()
+      
+      // 移除可能的markdown代码块标记（支持多种格式）
+      jsonStr = jsonStr.replace(/^```[\s\S]*?\n/g, '') // 移除开头的 ```json 或 ```
+      jsonStr = jsonStr.replace(/```$/g, '') // 移除结尾的 ```
+      
+      // 尝试提取JSON部分
+      let jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
+        // 尝试其他匹配方式
+        const firstBrace = jsonStr.indexOf('{')
+        const lastBrace = jsonStr.lastIndexOf('}')
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonMatch = [jsonStr.slice(firstBrace, lastBrace + 1)]
+        }
+      }
+      
+      if (!jsonMatch) {
+        console.error('无法提取JSON，原始响应:', response)
         throw new Error('AI返回格式错误，请重试')
       }
       
-      return JSON.parse(jsonMatch[0])
+      const jsonToParse = jsonMatch[0].trim()
+      console.log('尝试解析的JSON:', jsonToParse)
+      
+      // 尝试解析JSON
+      try {
+        const result = JSON.parse(jsonToParse)
+        console.log('解析成功的结果:', result)
+        
+        // 确保返回的数据包含必需的字段
+        if (!result.effect || !result.processingMethod) {
+          console.error('返回数据缺少必需字段:', result)
+          throw new Error('AI返回的数据不完整')
+        }
+        return result
+      } catch (parseErr) {
+        console.error('JSON解析失败:', parseErr, '尝试解析的内容:', jsonToParse)
+        
+        // 降级方案：尝试清理常见格式问题
+        let cleanedJson = jsonToParse
+          .replace(/,\s*}/g, '}') // 移除末尾多余逗号
+          .replace(/,\s*]/g, ']') // 移除数组末尾多余逗号
+          .replace(/(['"])?(\w+)(['"])?\s*:/g, '"$2":') // 确保键都有引号
+        
+        try {
+          const result = JSON.parse(cleanedJson)
+          console.log('降级解析成功的结果:', result)
+          if (!result.effect || !result.processingMethod) {
+            throw new Error('AI返回的数据不完整')
+          }
+          return result
+        } catch {
+          throw new Error('AI返回格式错误，请重试')
+        }
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取食材信息失败'
       throw err
@@ -177,13 +229,67 @@ export function useAIChat() {
       const prompt = generateRecipeFormPrompt(recipeName)
       const response = await callAI(prompt)
       
-      // 解析JSON响应
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
+      console.log('AI原始响应(菜谱):', response) // 添加调试日志
+      
+      // 解析JSON响应 - 增强容错性
+      let jsonStr = response.trim()
+      
+      // 移除可能的markdown代码块标记（支持多种格式）
+      jsonStr = jsonStr.replace(/^```[\s\S]*?\n/g, '') // 移除开头的 ```json 或 ```
+      jsonStr = jsonStr.replace(/```$/g, '') // 移除结尾的 ```
+      
+      // 尝试提取JSON部分
+      let jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
+        // 尝试其他匹配方式
+        const firstBrace = jsonStr.indexOf('{')
+        const lastBrace = jsonStr.lastIndexOf('}')
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonMatch = [jsonStr.slice(firstBrace, lastBrace + 1)]
+        }
+      }
+      
+      if (!jsonMatch) {
+        console.error('无法提取JSON(菜谱)，原始响应:', response)
         throw new Error('AI返回格式错误，请重试')
       }
       
-      return JSON.parse(jsonMatch[0])
+      const jsonToParse = jsonMatch[0].trim()
+      console.log('尝试解析的JSON(菜谱):', jsonToParse)
+      
+      // 尝试解析JSON
+      try {
+        const result = JSON.parse(jsonToParse)
+        console.log('解析成功的结果(菜谱):', result)
+        
+        // 确保返回的数据包含必需的字段
+        if (!result.taste || !result.difficulty || !result.cookingTime || 
+            !result.servings || !result.steps || !result.ingredientNames) {
+          console.error('返回数据缺少必需字段(菜谱):', result)
+          throw new Error('AI返回的数据不完整')
+        }
+        return result
+      } catch (parseErr) {
+        console.error('JSON解析失败(菜谱):', parseErr, '尝试解析的内容:', jsonToParse)
+        
+        // 降级方案：尝试清理常见格式问题
+        let cleanedJson = jsonToParse
+          .replace(/,\s*}/g, '}') // 移除末尾多余逗号
+          .replace(/,\s*]/g, ']') // 移除数组末尾多余逗号
+          .replace(/(['"])?(\w+)(['"])?\s*:/g, '"$2":') // 确保键都有引号
+        
+        try {
+          const result = JSON.parse(cleanedJson)
+          console.log('降级解析成功的结果(菜谱):', result)
+          if (!result.taste || !result.difficulty || !result.cookingTime || 
+              !result.servings || !result.steps || !result.ingredientNames) {
+            throw new Error('AI返回的数据不完整')
+          }
+          return result
+        } catch {
+          throw new Error('AI返回格式错误，请重试')
+        }
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '获取菜谱信息失败'
       throw err
@@ -395,7 +501,7 @@ export function useAIChat() {
         model,
         messages,
         temperature,
-        stream: true
+        stream: false
       })
     })
 
