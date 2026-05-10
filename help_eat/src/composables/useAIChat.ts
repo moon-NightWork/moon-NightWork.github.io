@@ -140,8 +140,6 @@ export function useAIChat() {
       const prompt = generateIngredientFormPrompt(ingredientName)
       const response = await callAI(prompt)
       
-      console.log('AI原始响应:', response) // 添加调试日志
-      
       // 解析JSON响应 - 增强容错性
       let jsonStr = response.trim()
       
@@ -161,26 +159,21 @@ export function useAIChat() {
       }
       
       if (!jsonMatch) {
-        console.error('无法提取JSON，原始响应:', response)
         throw new Error('AI返回格式错误，请重试')
       }
       
       const jsonToParse = jsonMatch[0].trim()
-      console.log('尝试解析的JSON:', jsonToParse)
       
       // 尝试解析JSON
       try {
         const result = JSON.parse(jsonToParse)
-        console.log('解析成功的结果:', result)
         
         // 确保返回的数据包含必需的字段
         if (!result.effect || !result.processingMethod) {
-          console.error('返回数据缺少必需字段:', result)
           throw new Error('AI返回的数据不完整')
         }
         return result
       } catch (parseErr) {
-        console.error('JSON解析失败:', parseErr, '尝试解析的内容:', jsonToParse)
         
         // 降级方案：尝试清理常见格式问题
         let cleanedJson = jsonToParse
@@ -190,7 +183,6 @@ export function useAIChat() {
         
         try {
           const result = JSON.parse(cleanedJson)
-          console.log('降级解析成功的结果:', result)
           if (!result.effect || !result.processingMethod) {
             throw new Error('AI返回的数据不完整')
           }
@@ -229,8 +221,6 @@ export function useAIChat() {
       const prompt = generateRecipeFormPrompt(recipeName)
       const response = await callAI(prompt)
       
-      console.log('AI原始响应(菜谱):', response) // 添加调试日志
-      
       // 解析JSON响应 - 增强容错性
       let jsonStr = response.trim()
       
@@ -250,27 +240,22 @@ export function useAIChat() {
       }
       
       if (!jsonMatch) {
-        console.error('无法提取JSON(菜谱)，原始响应:', response)
         throw new Error('AI返回格式错误，请重试')
       }
       
       const jsonToParse = jsonMatch[0].trim()
-      console.log('尝试解析的JSON(菜谱):', jsonToParse)
       
       // 尝试解析JSON
       try {
         const result = JSON.parse(jsonToParse)
-        console.log('解析成功的结果(菜谱):', result)
         
         // 确保返回的数据包含必需的字段
         if (!result.taste || !result.difficulty || !result.cookingTime || 
             !result.servings || !result.steps || !result.ingredientNames) {
-          console.error('返回数据缺少必需字段(菜谱):', result)
           throw new Error('AI返回的数据不完整')
         }
         return result
       } catch (parseErr) {
-        console.error('JSON解析失败(菜谱):', parseErr, '尝试解析的内容:', jsonToParse)
         
         // 降级方案：尝试清理常见格式问题
         let cleanedJson = jsonToParse
@@ -280,7 +265,6 @@ export function useAIChat() {
         
         try {
           const result = JSON.parse(cleanedJson)
-          console.log('降级解析成功的结果(菜谱):', result)
           if (!result.taste || !result.difficulty || !result.cookingTime || 
               !result.servings || !result.steps || !result.ingredientNames) {
             throw new Error('AI返回的数据不完整')
